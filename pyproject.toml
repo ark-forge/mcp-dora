@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-dora"
+version = "1.0.0"
+description = "DORA compliance scanner as an MCP server — scans projects for Digital Operational Resilience Act gaps"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.14.1",
+]
+keywords = [
+    "DORA",
+    "Digital Operational Resilience Act",
+    "compliance",
+    "MCP",
+    "fintech",
+    "banking",
+    "ICT risk",
+    "trust-layer",
+    "financial-regulation",
+    "eu-regulation",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.urls]
+Homepage = "https://mcp.arkforge.tech/en/mcp-dora.html?utm_source=pypi"
+Repository = "https://github.com/ark-forge/mcp-dora"
+Documentation = "https://mcp.arkforge.tech/en/mcp-dora.html?utm_source=pypi"
+
+[project.scripts]
+dora-scanner = "cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+only-include = ["server.py", "cli.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short -q"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["server", "cli"]
+omit = [
+    ".venv/*",
+    "venv/*",
+    "dist/*",
+    "__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+]
+show_missing = true
+skip_empty = true

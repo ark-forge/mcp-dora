@@ -1,0 +1,15 @@
+[Unit]
+Description=MCP DORA Compliance Scanner (Python Streamable HTTP)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/claude-ceo/workspace/mcp-servers/dora
+ExecStart=/usr/bin/python3 server.py --http
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

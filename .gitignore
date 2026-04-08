@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.coverage
+data/rate_limits.json
+data/api_keys.json
+dist/

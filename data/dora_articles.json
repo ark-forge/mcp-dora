@@ -1,0 +1,222 @@
+{
+  "regulation": "DORA — Digital Operational Resilience Act (EU) 2022/2554",
+  "in_force": "2025-01-17",
+  "articles": [
+    {
+      "article": "Art. 5",
+      "title": "Governance and organisation",
+      "chapter": "ICT Risk Management",
+      "summary": "The management body must define, approve and oversee the ICT risk management framework and bear full responsibility for it.",
+      "requirements": ["Management body approves ICT risk strategy", "Board-level accountability for ICT risk", "Dedicated ICT risk function or responsibility", "Regular ICT risk reporting to management body"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": false,
+      "organizational_only": true,
+      "trust_layer_relevant": false,
+      "severity": "critical"
+    },
+    {
+      "article": "Art. 9",
+      "title": "Protection and prevention",
+      "chapter": "ICT Risk Management",
+      "summary": "Financial entities must have ICT security policies, procedures and tools to protect confidentiality, integrity and availability of data.",
+      "requirements": ["ICT security policies documented", "Access control mechanisms", "Encryption of data at rest and in transit", "Patch and vulnerability management", "No hardcoded credentials in source code", "Secrets management (vault, env vars)"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["hardcoded_credentials", "no_secrets_management"],
+      "trust_layer_relevant": false,
+      "severity": "high"
+    },
+    {
+      "article": "Art. 10",
+      "title": "Detection",
+      "chapter": "ICT Risk Management",
+      "summary": "Financial entities must have mechanisms to promptly detect anomalous activities and ICT-related incidents.",
+      "requirements": ["Anomaly detection mechanisms", "Structured logging for ICT events", "Monitoring of ICT systems", "Alert mechanisms for anomalous activity"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["mutable_logging", "no_structured_logging", "no_monitoring"],
+      "trust_layer_relevant": true,
+      "trust_layer_note": "Immutable detection logs verifiable by supervisors",
+      "severity": "high"
+    },
+    {
+      "article": "Art. 11",
+      "title": "Response and recovery plans",
+      "chapter": "ICT Risk Management",
+      "summary": "Financial entities must have ICT business continuity policies including retry logic, failover and recovery procedures.",
+      "requirements": ["Business continuity policy documented", "RTO and RPO defined", "Retry and failover mechanisms in code", "Circuit breakers for critical dependencies", "Tested recovery procedures"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["missing_retry", "missing_circuit_breaker"],
+      "trust_layer_relevant": false,
+      "severity": "high"
+    },
+    {
+      "article": "Art. 17",
+      "title": "ICT-related incident management process",
+      "chapter": "ICT-Related Incident Management",
+      "summary": "Financial entities must define, establish and implement an ICT-related incident management process with immutable records.",
+      "requirements": ["Incident management process documented", "Immutable incident log (tamper-proof records)", "Incident lifecycle tracking", "Root cause analysis procedure", "Incident records retained for supervisory inspection"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["mutable_logging", "no_incident_tracking"],
+      "trust_layer_relevant": true,
+      "trust_layer_note": "Trust Layer seals each incident record at creation — tamper-proof, timestamped, verifiable by supervisors without routing through ArkForge",
+      "severity": "critical"
+    },
+    {
+      "article": "Art. 18",
+      "title": "Classification of ICT-related incidents",
+      "chapter": "ICT-Related Incident Management",
+      "summary": "Financial entities must classify incidents using harmonised criteria: clients affected, data losses, duration, geographic spread.",
+      "requirements": ["Incident classification framework (major / significant / minor)", "Classification criteria applied at detection time", "Cyber threat classification"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": false,
+      "organizational_only": true,
+      "trust_layer_relevant": true,
+      "trust_layer_note": "Classification records sealed via Trust Layer cannot be retroactively modified",
+      "severity": "critical"
+    },
+    {
+      "article": "Art. 19",
+      "title": "Reporting of major ICT-related incidents",
+      "chapter": "ICT-Related Incident Management",
+      "summary": "Financial entities must report major incidents to competent authorities: initial within 4h, intermediate within 72h, final within 1 month.",
+      "requirements": ["Initial notification within 4 hours", "Intermediate report within 72 hours", "Final report within 1 month", "Defined competent authority contact"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "trading_venue", "central_counterparty"],
+      "detectable_from_code": false,
+      "organizational_only": true,
+      "trust_layer_relevant": true,
+      "trust_layer_note": "Timestamped proof of detection and reporting — demonstrates 4h/72h deadlines met",
+      "severity": "critical"
+    },
+    {
+      "article": "Art. 24",
+      "title": "Digital operational resilience testing programme",
+      "chapter": "Digital Operational Resilience Testing",
+      "summary": "Financial entities must maintain an annual resilience testing programme including vulnerability assessments and penetration tests.",
+      "requirements": ["Annual resilience testing programme", "Vulnerability assessments", "Network security assessments", "Gap analyses"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["no_security_tests", "no_vulnerability_scanner"],
+      "trust_layer_relevant": false,
+      "severity": "high"
+    },
+    {
+      "article": "Art. 25",
+      "title": "Testing of ICT tools and systems",
+      "chapter": "Digital Operational Resilience Testing",
+      "summary": "Financial entities shall perform penetration tests and source code reviews (SAST/DAST) at least once a year.",
+      "requirements": ["Penetration test at least annually", "Source code reviews (SAST/DAST)", "Documented test results"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["no_security_tests", "no_sast_config"],
+      "trust_layer_relevant": false,
+      "severity": "medium"
+    },
+    {
+      "article": "Art. 26",
+      "title": "Threat-Led Penetration Testing (TLPT)",
+      "chapter": "Digital Operational Resilience Testing",
+      "summary": "Significant financial entities must conduct TLPT at least every 3 years using qualified external testers.",
+      "requirements": ["TLPT every 3 years (significant entities only)", "Qualified external testers (TIBER-EU or equivalent)", "Scope covers critical ICT systems"],
+      "entity_types": ["credit_institution", "investment_firm", "trading_venue", "central_counterparty"],
+      "detectable_from_code": false,
+      "organizational_only": true,
+      "trust_layer_relevant": false,
+      "severity": "medium"
+    },
+    {
+      "article": "Art. 28",
+      "title": "General principles of ICT third-party risk management",
+      "chapter": "ICT Third-Party Risk Management",
+      "summary": "Financial entities must manage ICT third-party risk with pre-contractual due diligence and concentration risk assessment.",
+      "requirements": ["Pre-contractual risk assessment for all ICT third parties", "Concentration risk assessment", "Exit strategy for each critical ICT provider", "Ongoing monitoring"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["third_party_api_calls"],
+      "trust_layer_relevant": false,
+      "severity": "high"
+    },
+    {
+      "article": "Art. 30",
+      "title": "Key contractual provisions",
+      "chapter": "ICT Third-Party Risk Management",
+      "summary": "Contracts with ICT third parties for critical functions must include SLAs, audit rights, security requirements, termination rights and data portability.",
+      "requirements": ["Defined SLA with measurable performance indicators", "Audit rights for financial entity and supervisors", "Data location specifications (EU/EEA)", "Termination and exit provisions", "Data portability and transition assistance"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": false,
+      "organizational_only": true,
+      "trust_layer_relevant": false,
+      "severity": "high"
+    },
+    {
+      "article": "Art. 31",
+      "title": "ICT third-party service provider register",
+      "chapter": "ICT Third-Party Risk Management",
+      "summary": "Financial entities must maintain a register of all ICT third-party service providers, distinguishing those supporting critical or important functions.",
+      "requirements": ["Register of all ICT third-party service providers", "Classification: critical/important vs non-critical", "Updated at least annually", "Includes provider name, service type, data processed, contract dates, SLA"],
+      "entity_types": ["credit_institution", "payment_institution", "e_money_institution", "investment_firm", "crypto_casp", "insurance_undertaking", "ict_provider", "trading_venue", "central_counterparty"],
+      "detectable_from_code": true,
+      "scan_patterns": ["third_party_api_calls"],
+      "trust_layer_relevant": false,
+      "severity": "high"
+    }
+  ],
+  "entity_types": {
+    "credit_institution": {
+      "label": "Credit Institution (Bank)",
+      "examples": ["Commercial banks", "Savings banks", "Credit cooperatives"],
+      "tlpt_required": true,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 26", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "payment_institution": {
+      "label": "Payment Institution",
+      "examples": ["Payment service providers", "Money transfer operators"],
+      "tlpt_required": false,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "e_money_institution": {
+      "label": "Electronic Money Institution",
+      "examples": ["E-money issuers", "Digital wallet providers"],
+      "tlpt_required": false,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "investment_firm": {
+      "label": "Investment Firm",
+      "examples": ["Asset managers", "Brokers", "Investment advisors"],
+      "tlpt_required": true,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 26", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "crypto_casp": {
+      "label": "Crypto Asset Service Provider (CASP)",
+      "examples": ["Crypto exchanges", "Custody providers", "Token issuers"],
+      "tlpt_required": false,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "insurance_undertaking": {
+      "label": "Insurance / Reinsurance Undertaking",
+      "examples": ["Insurers", "Reinsurers", "Insurance intermediaries"],
+      "tlpt_required": false,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 12", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "ict_provider": {
+      "label": "ICT Third-Party Service Provider",
+      "examples": ["Cloud providers", "SaaS vendors", "Data centres", "Software vendors"],
+      "tlpt_required": false,
+      "key_articles": ["Art. 28", "Art. 30", "Art. 31"]
+    },
+    "trading_venue": {
+      "label": "Trading Venue",
+      "examples": ["Stock exchanges", "MTFs", "OTFs"],
+      "tlpt_required": true,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 26", "Art. 28", "Art. 30", "Art. 31"]
+    },
+    "central_counterparty": {
+      "label": "Central Counterparty (CCP)",
+      "examples": ["Clearing houses"],
+      "tlpt_required": true,
+      "key_articles": ["Art. 5", "Art. 9", "Art. 10", "Art. 11", "Art. 17", "Art. 18", "Art. 19", "Art. 24", "Art. 25", "Art. 26", "Art. 28", "Art. 30", "Art. 31"]
+    }
+  }
+}
