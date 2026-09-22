@@ -198,7 +198,7 @@ log "Local commit: $NEW_COMMIT"
 # PHASE 3 — DEPLOY LOCAL
 # ============================================================
 log "--- Phase 3a: Deploy local (restart $SERVICE_MCP) ---"
-sudo systemctl restart "$SERVICE_MCP" 2>/dev/null || \
+sudo -n /usr/local/sbin/arkforge-run relance "$SERVICE_MCP" 2>/dev/null || \
     fail "Could not restart $SERVICE_MCP — check systemctl status $SERVICE_MCP"
 sleep 3
 
@@ -225,7 +225,7 @@ done
 if [ "$LOCAL_HEALTHY" = false ]; then
     log "Phase 3b FAILED — local not healthy after restart"
     git -C /opt/claude-ceo reset --hard "$PREV_COMMIT" >> "$LOG_FILE" 2>&1
-    sudo systemctl restart "$SERVICE_MCP" 2>/dev/null || true
+    sudo -n /usr/local/sbin/arkforge-run relance "$SERVICE_MCP" 2>/dev/null || true
     fail "Phase 3b FAILED — rolled back to $PREV_COMMIT"
 fi
 log "Phase 3b OK — local healthy"
@@ -291,7 +291,7 @@ else
             log "Phase 5: Smoke test FAILED (exit $SMOKE_EXIT)"
             SMOKE_RESULT="FAILED"
             git -C /opt/claude-ceo reset --hard "$PREV_COMMIT" >> "$LOG_FILE" 2>&1
-            sudo systemctl restart "$SERVICE_MCP" 2>/dev/null || true
+            sudo -n /usr/local/sbin/arkforge-run relance "$SERVICE_MCP" 2>/dev/null || true
             fail "Smoke test FAILED — rolled back to $PREV_COMMIT"
         fi
     fi
