@@ -1,2 +1,2 @@
 # Reviewed 2026-09-24: fake key in a test of the hardcoded-credentials detector.
-b0b4a49335481d77a8a1e9145c32c58fa591c759:tests/test_scanner.py:generic-api-key:155
+d147e65f18e8e4c1e78d4b44cb7cf1f02da92fb7:tests/test_scanner.py:generic-api-key:155
