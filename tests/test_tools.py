@@ -15,6 +15,7 @@ from server import (
     ApiKeyManager,
     _require_plan,
     _add_banner,
+    _add_banner_fields,
     _current_plan,
     _scan_remaining,
     FREE_TIER_DAILY_LIMIT,
@@ -183,7 +184,7 @@ class TestAddBanner:
         token = _current_plan.set("free")
         remaining_token = _scan_remaining.set(5)
         try:
-            result = _add_banner({"findings": {}})
+            result = _add_banner_fields({"findings": {}})
             assert "upgrade" in result
             assert _PRICING_URL in result["upgrade"]
         finally:
@@ -194,7 +195,7 @@ class TestAddBanner:
         token = _current_plan.set("free")
         remaining_token = _scan_remaining.set(1)
         try:
-            result = _add_banner({"findings": {}})
+            result = _add_banner_fields({"findings": {}})
             assert "Last free scan" in result["upgrade"] or "1" in result["upgrade"]
         finally:
             _current_plan.reset(token)
@@ -203,7 +204,7 @@ class TestAddBanner:
     def test_pro_adds_trust_layer_cta(self):
         token = _current_plan.set("pro")
         try:
-            result = _add_banner({"findings": {}})
+            result = _add_banner_fields({"findings": {}})
             assert "trust_layer" in result
             assert "arkforge.tech/trust" in result["trust_layer"]
         finally:
@@ -213,11 +214,31 @@ class TestAddBanner:
         token = _current_plan.set("free")
         remaining_token = _scan_remaining.set(5)
         try:
-            result = _add_banner({
+            result = _add_banner_fields({
                 "findings": {"mutable_logging": ["app.py"]},
             })
             assert "trust_layer" in result
             assert "tamper-proof" in result["trust_layer"].lower() or "Trust Layer" in result["trust_layer"]
+        finally:
+            _current_plan.reset(token)
+            _scan_remaining.reset(remaining_token)
+
+    def test_add_banner_returns_dual_format(self):
+        """_add_banner returns [TextContent(JSON), TextContent(text)] for LLM relay."""
+        from mcp.types import TextContent
+        token = _current_plan.set("free")
+        remaining_token = _scan_remaining.set(5)
+        try:
+            result = _add_banner({"findings": {}})
+            assert isinstance(result, list)
+            assert len(result) == 2
+            assert all(isinstance(r, TextContent) for r in result)
+            # First block is JSON
+            import json
+            parsed = json.loads(result[0].text)
+            assert "upgrade" in parsed
+            # Second block is human-readable text
+            assert "Upgrade" in result[1].text or "pricing" in result[1].text.lower()
         finally:
             _current_plan.reset(token)
             _scan_remaining.reset(remaining_token)
