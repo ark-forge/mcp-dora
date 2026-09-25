@@ -1,13 +1,15 @@
 [Unit]
 Description=MCP DORA Compliance Scanner (Python Streamable HTTP)
 After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
 User=ubuntu
 WorkingDirectory=/opt/claude-ceo/workspace/mcp-servers/dora
-ExecStart=/usr/bin/python3 server.py --http
-Restart=on-failure
+ExecStart=/opt/claude-ceo/workspace/mcp-servers/dora/.venv/bin/python server.py --http
+Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
 
