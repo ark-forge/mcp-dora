@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import TextContent
 
 logger = logging.getLogger(__name__)
 
@@ -37,20 +38,20 @@ _PRICING_URL = "https://mcp.arkforge.tech/en/mcp-dora.html?utm_source=pypi"
 _TRUST_LAYER_URL = "https://arkforge.tech/trust?utm_source=dora-mcp"
 
 FREE_TIER_BANNER = (
-    f"Free tier: {FREE_TIER_DAILY_LIMIT} scans/day — Pro: unlimited scans + CI/CD API "
-    f"at 29€/mo → {_PRICING_URL}"
+    f"Free plan: {FREE_TIER_DAILY_LIMIT} scans/day. Pro: unlimited scans + CI/CD API at 29 EUR/mo.\n"
+    f"Upgrade: {_PRICING_URL}"
 )
 
 TRUST_LAYER_CTA = (
-    "DORA Art.17 requires tamper-proof incident records — "
-    "Trust Layer seals each log entry at creation: "
-    f"arkforge.tech/trust?utm_source=dora-mcp"
+    "DORA Art.17 requires tamper-proof incident records. "
+    "Trust Layer seals each log entry at creation.\n"
+    f"Get started: {_TRUST_LAYER_URL}"
 )
 
 TRUST_LAYER_CTA_GAPS = (
     "Your system has DORA compliance gaps on incident logging. "
-    "Trust Layer makes every incident record tamper-proof and verifiable by supervisors "
-    f"without routing through ArkForge → {_TRUST_LAYER_URL}"
+    "Trust Layer makes every incident record tamper-proof and verifiable by supervisors.\n"
+    f"Get started: {_TRUST_LAYER_URL}"
 )
 
 # ---------------------------------------------------------------------------
@@ -191,8 +192,8 @@ _rate_limiter = RateLimiter()
 _PLAN_ORDER = {"free": 0, "pro": 1, "certified": 2}
 
 _PLAN_INFO = {
-    "pro": {"plan": "Pro", "price": "29€/mo"},
-    "certified": {"plan": "Certified", "price": "99€/mo"},
+    "pro": {"plan": "Pro", "price": "29 EUR/mo"},
+    "certified": {"plan": "Certified", "price": "99 EUR/mo"},
 }
 
 
@@ -213,7 +214,56 @@ def _require_plan(min_plan: str, tool_name: str) -> Optional[dict]:
     }
 
 
-def _add_banner(result: dict) -> dict:
+def _format_text_result(result: dict) -> str:
+    """Format scan result as human-readable text that LLMs relay faithfully.
+
+    Plain text in the primary content block gets relayed more directly than JSON.
+    """
+    lines = []
+
+    # Scan summary
+    files_scanned = result.get("files_scanned", 0)
+    if files_scanned:
+        lines.append(f"Scanned {files_scanned} files for DORA compliance.")
+
+    # Entity/classification info
+    if result.get("entity_type"):
+        lines.append(f"Entity type: {result['entity_type']}")
+
+    # Findings summary
+    findings = result.get("findings", {})
+    gap_count = sum(1 for v in findings.values() if v) if isinstance(findings, dict) else 0
+    if gap_count:
+        lines.append(f"DORA gaps found: {gap_count}")
+        for key, val in findings.items():
+            if val:
+                lines.append(f"  - {key}: {len(val) if isinstance(val, list) else val}")
+
+    # Compliance score
+    score = result.get("compliance_score") or result.get("readiness_score")
+    if score is not None:
+        lines.append(f"Compliance score: {score}")
+
+    # Recommendations
+    recs = result.get("recommendations", [])
+    if recs and isinstance(recs, list):
+        lines.append(f"Recommendations: {len(recs)}")
+
+    # Upgrade CTA (free tier)
+    if result.get("upgrade"):
+        lines.append("")
+        lines.append(result["upgrade"])
+
+    # Trust Layer CTA
+    if result.get("trust_layer"):
+        lines.append("")
+        lines.append(result["trust_layer"])
+
+    return "\n".join(lines) if lines else json.dumps(result, default=str)
+
+
+def _add_banner_fields(result: dict) -> dict:
+    """Add CTA fields to the result dict (internal helper)."""
     current = _current_plan.get()
     remaining = _scan_remaining.get()
 
@@ -228,14 +278,14 @@ def _add_banner(result: dict) -> dict:
         return result
 
     # Free tier — contextual urgency
-    if remaining <= 1:
+    if remaining is not None and remaining <= 1:
         upgrade_msg = (
-            f"⚠ Last free scan today. Upgrade to Pro for unlimited scans → {_PRICING_URL}"
+            f"Last free scan today. Pro: unlimited scans at 29 EUR/mo. Upgrade: {_PRICING_URL}"
         )
-    elif remaining <= 3:
+    elif remaining is not None and remaining <= 3:
         upgrade_msg = (
             f"{remaining} free scans remaining today. "
-            f"Pro: unlimited → {_PRICING_URL}"
+            f"Pro: unlimited at 29 EUR/mo. Upgrade: {_PRICING_URL}"
         )
     else:
         upgrade_msg = FREE_TIER_BANNER
@@ -257,6 +307,21 @@ def _add_banner(result: dict) -> dict:
         })
 
     return result
+
+
+def _add_banner(result: dict) -> list:
+    """Add contextual upgrade CTAs and return text+JSON dual-format for MCP.
+
+    Returns [TextContent(JSON), TextContent(human summary)] — JSON first for
+    programmatic consumers, human-readable text LAST so MCP clients that only
+    render the final content block still display the CTA and compliance summary.
+    """
+    result = _add_banner_fields(result)
+    text_summary = _format_text_result(result)
+    return [
+        TextContent(type="text", text=json.dumps(result, default=str)),
+        TextContent(type="text", text=text_summary),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -837,7 +902,7 @@ class DORAChecker:
                 "Records must be tamper-proof — a mutable log file does NOT satisfy this requirement. "
                 "Recommended: seal each incident record with Trust Layer (Ed25519 + RFC 3161 timestamp) "
                 "to produce a cryptographic proof verifiable by regulators without routing through ArkForge. "
-                f"→ {_TRUST_LAYER_URL}"
+                f"Learn more: {_TRUST_LAYER_URL}"
             ),
             "retention_period": "Minimum 5 years (aligned with GDPR and financial record-keeping obligations)",
         }
@@ -1086,7 +1151,7 @@ class RateLimitMiddleware:
                 "code": 429,
                 "message": (
                     f"Free tier limit reached ({FREE_TIER_DAILY_LIMIT} scans/day). "
-                    f"Upgrade to Pro for unlimited scans → {_PRICING_URL}"
+                    f"Pro: unlimited scans at 29 EUR/mo. Upgrade: {_PRICING_URL}"
                 ),
             }
         }).encode("utf-8")
@@ -1107,8 +1172,8 @@ def create_server():
             "DORA compliance scanner for financial entities. Scans projects for ICT resilience gaps "
             "and generates Art.31 registers, Art.17-18 incident templates. "
             "Covers: banks, payment institutions, investment firms, crypto CASPs, insurers, ICT providers. "
-            f"Free: {FREE_TIER_DAILY_LIMIT} scans/day. Pro: unlimited + CI/CD API at 29€/mo → {_PRICING_URL} "
-            f"| Certify reports with Trust Layer → {_TRUST_LAYER_URL}"
+            f"Free: {FREE_TIER_DAILY_LIMIT} scans/day. Pro: unlimited + CI/CD API at 29 EUR/mo. "
+            f"Pricing: {_PRICING_URL} | Trust Layer: {_TRUST_LAYER_URL}"
         ),
         host="127.0.0.1",
         port=_MCP_PORT,
@@ -1122,7 +1187,7 @@ def create_server():
     )
 
     @mcp.tool()
-    def scan_project(project_path: str) -> dict:
+    def scan_project(project_path: str) -> list:
         """Scan a project for DORA (Digital Operational Resilience Act) compliance gaps.
 
         Detects ICT third-party dependencies (Art.28/31), mutable logging (Art.10/17),
@@ -1140,7 +1205,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def classify_entity(entity_type: str) -> dict:
+    def classify_entity(entity_type: str) -> list:
         """Classify a DORA entity type and return all applicable articles and obligations.
 
         Args:
@@ -1153,7 +1218,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def assess_organization(responses: dict) -> dict:
+    def assess_organization(responses: dict) -> list:
         """Score DORA organizational readiness from YES/NO questionnaire responses.
 
         Pass a dict with boolean values for each check. Missing keys are treated as unanswered.
@@ -1172,7 +1237,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def generate_ict_register(project_path: str) -> dict:
+    def generate_ict_register(project_path: str) -> list:
         """Generate an Art.31 ICT third-party service provider register skeleton from a project scan.
 
         Automatically detects vendors from source code and scaffolds the DORA-required register
@@ -1193,7 +1258,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def generate_incident_template(project_path: str = "/tmp") -> dict:
+    def generate_incident_template(project_path: str = "/tmp") -> list:
         """Generate an Art.17-18 ICT incident management template with classification framework.
 
         Includes: incident classification criteria (major/significant/minor), regulatory
@@ -1210,7 +1275,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def generate_report(project_path: str, org_responses: dict = {}) -> dict:  # noqa: B006
+    def generate_report(project_path: str, org_responses: dict = {}) -> list:  # noqa: B006
         """Generate a full DORA compliance report combining code scan and organizational assessment.
 
         Args:
@@ -1228,7 +1293,7 @@ def create_server():
         return _add_banner(result)
 
     @mcp.tool()
-    def certify_report(project_path: str, trust_layer_key: str) -> dict:
+    def certify_report(project_path: str, trust_layer_key: str) -> list:
         """Certify a DORA compliance report with ArkForge Trust Layer.
 
         Generates a tamper-proof cryptographic proof (Ed25519 + RFC 3161 timestamp +
